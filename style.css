@@ -16,7 +16,7 @@ main { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px
 .stack { display: grid; grid-auto-rows: minmax(0,auto); gap: 8px; margin: 10px 0 6px; }
 .line { display: grid; grid-template-columns: 160px 1fr 64px; align-items: center; gap: 10px; }
 .label { color: var(--text); font-size: 14px; }
-input[type="number"] { width: 80px; padding: 6px 8px; border-radius: 10px; border: 1px solid #2a2d35; background: #0f1014; color: var(--text); }
+input[type="number"] { width: 40px; padding: 6px 8px; border-radius: 10px; border: 1px solid #2a2d35; background: #0f1014; color: var(--text); }
 input[type="range"] { width: 100%; }
 .val { color: var(--accent); font-variant-numeric: tabular-nums; text-align: right; }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
