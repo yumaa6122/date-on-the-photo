@@ -1,7 +1,9 @@
-// PWA v3.2: 3-line sliders + robust orientation defaults + JPEG 100%
+// PWA v3.4: Separate X/Y margins, robust orientation defaults, JPEG 100%, first-space multiplier
 const assetNames = [...Array(10).keys()].map(n => `${n}.png`).concat(['apostrophe.png']);
 const IMAGES = {};
 let assetsLoaded = false;
+
+const FIRST_SPACE_MULT = 2.0; // widen only the first gap (YY -> M)
 
 async function loadAssets() {
   for (const name of assetNames) {
@@ -68,14 +70,16 @@ const yyEl = document.getElementById('yy');
 const mmEl = document.getElementById('mm');
 const ddEl = document.getElementById('dd');
 const scaleEl = document.getElementById('scale');
-const marginEl = document.getElementById('margin');
+const marginXEl = document.getElementById('marginX');
+const marginYEl = document.getElementById('marginY');
 const spaceEl = document.getElementById('space');
 const dlPngBtn = document.getElementById('downloadPng');
 const dlJpgBtn = document.getElementById('downloadJpeg');
 const boundsChk = document.getElementById('showBounds');
 
 const scaleVal = document.getElementById('scaleVal');
-const marginVal = document.getElementById('marginVal');
+const marginXVal = document.getElementById('marginXVal');
+const marginYVal = document.getElementById('marginYVal');
 const spaceVal = document.getElementById('spaceVal');
 
 function updateSliderLabels() {
@@ -84,7 +88,8 @@ function updateSliderLabels() {
     return (Math.round(n * 10**digits) / 10**digits).toString();
   };
   scaleVal.textContent = fmt(scaleEl.value, 3);
-  marginVal.textContent = fmt(marginEl.value, 0);
+  marginXVal.textContent = fmt(marginXEl.value, 0);
+  marginYVal.textContent = fmt(marginYEl.value, 0);
   spaceVal.textContent = fmt(spaceEl.value, 2);
 }
 
@@ -111,6 +116,7 @@ fileInput.addEventListener('change', async (e) => {
   canvas.width = photo.naturalWidth || photo.width;
   canvas.height = photo.naturalHeight || photo.height;
 
+  // Orientation-based defaults with tolerance + EXIF
   const ratio = canvas.width / canvas.height;
   const TOL = 1.03;
   let orientation = (ratio >= TOL) ? 'landscape' : (ratio <= 1/TOL ? 'portrait' : 'unknown');
@@ -119,13 +125,22 @@ fileInput.addEventListener('change', async (e) => {
     if (exif === 6 || exif === 8) orientation = 'portrait';
     else if (exif === 1 || exif === 2 || exif === 3 || exif === 4) orientation = 'landscape';
   }
-  if (orientation === 'landscape') { scaleEl.value = 0.05; marginEl.value = 200; spaceEl.value = 0.35; }
-  else if (orientation === 'portrait') { scaleEl.value = 0.025; marginEl.value = 100; spaceEl.value = 0.35; }
+  if (orientation === 'landscape') {
+    scaleEl.value = 0.05; 
+    marginXEl.value = 395; 
+    marginYEl.value = 265; 
+    spaceEl.value = 0.5;
+  } else if (orientation === 'portrait') {
+    scaleEl.value = 0.03; 
+    marginXEl.value = 395; 
+    marginYEl.value = 265; 
+    spaceEl.value = 0.5;
+  }
   updateSliderLabels();
   render();
 });
 
-[yyEl, mmEl, ddEl, scaleEl, marginEl, spaceEl, boundsChk].forEach(el => {
+[yyEl, mmEl, ddEl, scaleEl, marginXEl, marginYEl, spaceEl, boundsChk].forEach(el => {
   el.addEventListener('input', () => { updateSliderLabels(); render(); });
 });
 
@@ -133,7 +148,7 @@ function buildGlyphSequence() {
   const yy = Math.max(0, Math.min(99, parseInt(yyEl.value || '0', 10)));
   const mm = Math.max(1, Math.min(12, parseInt(mmEl.value || '1', 10)));
   const dd = Math.max(1, Math.min(31, parseInt(ddEl.value || '1', 10)));
-  const seq = ['apostrophe', String(Math.floor(yy/10)), String(yy%10), 'space','space'];
+  const seq = ['apostrophe', String(Math.floor(yy/10)), String(yy%10), 'spaceL','spaceL'];
   String(mm).split('').forEach(ch => seq.push(ch));
   seq.push('space','space');
   String(dd).padStart(2,'0').split('').forEach(ch => seq.push(ch));
@@ -146,15 +161,17 @@ function render() {
   ctx.drawImage(photo, 0, 0, canvas.width, canvas.height);
 
   const seq = buildGlyphSequence();
-  const margin = parseFloat(marginEl.value);
+  const marginX = parseFloat(marginXEl.value);
+  const marginY = parseFloat(marginYEl.value);
   const scale = parseFloat(scaleEl.value);
   const spaceRatio = parseFloat(spaceEl.value);
 
   const glyphH = canvas.height * scale;
   const widths = seq.map(key => {
-    if (key === 'space') {
+    if (key === 'space' || key === 'spaceL') {
       const ref = IMAGES['8'];
-      return glyphH * (ref.naturalWidth / ref.naturalHeight) * spaceRatio;
+      const base = glyphH * (ref.naturalWidth / ref.naturalHeight) * spaceRatio;
+      return key === 'spaceL' ? base * FIRST_SPACE_MULT : base;
     } else {
       const img = key === 'apostrophe' ? IMAGES['apostrophe'] : IMAGES[key];
       return glyphH * (img.naturalWidth / img.naturalHeight);
@@ -162,8 +179,8 @@ function render() {
   });
 
   const totalW = widths.reduce((a,b)=>a+b,0);
-  const xStart = canvas.width - margin - totalW;
-  const yTop = canvas.height - margin - glyphH;
+  const xStart = canvas.width - marginX - totalW;
+  const yTop = canvas.height - marginY - glyphH;
 
   if (boundsChk.checked) {
     ctx.save();
@@ -177,7 +194,7 @@ function render() {
   for (let i = 0; i < seq.length; i++) {
     const key = seq[i];
     const w = widths[i];
-    if (key === 'space') { x += w; continue; }
+    if (key === 'space' || key === 'spaceL') { x += w; continue; }
     const img = key === 'apostrophe' ? IMAGES['apostrophe'] : IMAGES[key];
     ctx.drawImage(img, x, yTop, w, glyphH);
     x += w;
