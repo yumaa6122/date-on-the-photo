@@ -1,5 +1,5 @@
-// Service worker v3-2
-const CACHE_NAME = 'sevenseg-date-v3-2';
+// Service worker v3-4: navigation fallback and cache bump
+const CACHE_NAME = 'sevenseg-date-v3-4';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -24,25 +24,29 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  const url = new URL(e.request.url);
+  const req = e.request;
+  if (req.mode === 'navigate') {
+    e.respondWith(
+      caches.match('./index.html').then(cached => cached || fetch(req))
+    );
+    return;
+  }
+  const url = new URL(req.url);
   if (url.pathname.includes('/assets/') || url.pathname.includes('/icons/')) {
     e.respondWith(
-      caches.match(e.request).then(cached => {
-        if (cached) return cached;
-        return fetch(e.request).then(res => {
-          const resClone = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
-          return res;
-        });
-      })
+      caches.match(req).then(cached => cached || fetch(req).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(c => c.put(req, clone));
+        return res;
+      }))
     );
     return;
   }
   e.respondWith(
-    fetch(e.request).then(res => {
-      const resClone = res.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
+    fetch(req).then(res => {
+      const clone = res.clone();
+      caches.open(CACHE_NAME).then(c => c.put(req, clone));
       return res;
-    }).catch(() => caches.match(e.request))
+    }).catch(() => caches.match(req))
   );
 });
