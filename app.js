@@ -130,7 +130,7 @@ fileInput.addEventListener('change', async (e) => {
   if (orientation === 'landscape') {
     scaleEl.value = 0.05;   // 高さ比
     marginXEl.value = 0.2;  // 幅の20%
-    marginYEl.value = 0.1;  // 高さの10%
+    marginYEl.value = 0.55;  // 高さの10%
     spaceEl.value = 0.5;
     //scaleEl.value = 0.05; 
     //marginXEl.value = 395; 
@@ -139,7 +139,7 @@ fileInput.addEventListener('change', async (e) => {
   } else if (orientation === 'portrait') {
     scaleEl.value = 0.03;
     marginXEl.value = 0.2;
-    marginYEl.value = 0.1;
+    marginYEl.value = 0.55;
     spaceEl.value = 0.5;
     //scaleEl.value = 0.03; 
     //marginXEl.value = 395; 
