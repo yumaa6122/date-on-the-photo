@@ -126,15 +126,23 @@ fileInput.addEventListener('change', async (e) => {
     else if (exif === 1 || exif === 2 || exif === 3 || exif === 4) orientation = 'landscape';
   }
   if (orientation === 'landscape') {
-    scaleEl.value = 0.05; 
-    marginXEl.value = 395; 
-    marginYEl.value = 265; 
+    scaleEl.value = 0.05;   // 高さ比
+    marginXEl.value = 0.2;  // 幅の20%
+    marginYEl.value = 0.1;  // 高さの10%
     spaceEl.value = 0.5;
+    //scaleEl.value = 0.05; 
+    //marginXEl.value = 395; 
+    //marginYEl.value = 265; 
+    //spaceEl.value = 0.5;
   } else if (orientation === 'portrait') {
-    scaleEl.value = 0.03; 
-    marginXEl.value = 395; 
-    marginYEl.value = 265; 
+    scaleEl.value = 0.03;
+    marginXEl.value = 0.2;
+    marginYEl.value = 0.1;
     spaceEl.value = 0.5;
+    //scaleEl.value = 0.03; 
+    //marginXEl.value = 395; 
+    //marginYEl.value = 265; 
+    //spaceEl.value = 0.5;
   }
   updateSliderLabels();
   render();
@@ -179,8 +187,11 @@ function render() {
   });
 
   const totalW = widths.reduce((a,b)=>a+b,0);
-  const xStart = canvas.width - marginX - totalW;
-  const yTop = canvas.height - marginY - glyphH;
+  // marginX, marginY を割合(0〜1)として計算
+  const xStart = canvas.width - (canvas.width * marginX) - totalW;
+  const yTop = canvas.height - (canvas.height * marginY) - glyphH;
+  //const xStart = canvas.width - marginX - totalW;
+  //const yTop = canvas.height - marginY - glyphH;
 
   if (boundsChk.checked) {
     ctx.save();
