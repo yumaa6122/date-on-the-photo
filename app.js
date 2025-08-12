@@ -88,8 +88,10 @@ function updateSliderLabels() {
     return (Math.round(n * 10**digits) / 10**digits).toString();
   };
   scaleVal.textContent = fmt(scaleEl.value, 3);
-  marginXVal.textContent = fmt(marginXEl.value, 0);
-  marginYVal.textContent = fmt(marginYEl.value, 0);
+  marginXVal.textContent = (parseFloat(marginXEl.value) * 100).toFixed(1) + '%';
+  marginYVal.textContent = (parseFloat(marginYEl.value) * 100).toFixed(1) + '%';
+  //marginXVal.textContent = fmt(marginXEl.value, 0);
+  //marginYVal.textContent = fmt(marginYEl.value, 0);
   spaceVal.textContent = fmt(spaceEl.value, 2);
 }
 
